@@ -1,43 +1,57 @@
-use std::iter::zip;
-
-use itertools::Itertools;
-use pathfinding::num_traits::{abs, ToPrimitive};
-
-use crate::{parse_nums::parse_nums, selfprint::SelfPrint};
+use crate::parse_nums::parse_nums;
 
 pub fn part1(input: String) {
-    let (left, right) = input
-        .lines()
-        .fold((vec![], vec![]), |(mut left, mut right), line| {
-            let mut nums = parse_nums::<i64>(line);
-            left.push(nums.next().expect("Left number not found"));
-            right.push(nums.next().expect("Right number not found"));
-            (left, right)
-        });
-    zip(left.iter().sorted(), right.iter().sorted())
-        .map(|(l, r)| abs(l - r))
-        .sum::<i64>()
-        .print();
+    let mut count = 0;
+    let mut dial = 50;
+    for line in input.lines() {
+        let distance = parse_nums::<i64>(line).next().expect("Distance not found");
+        if line.starts_with('L') {
+            dial -= distance;
+        } else {
+            dial += distance;
+        }
+
+        while dial < 0 {
+            dial += 100;
+        }
+        while dial > 99 {
+            dial -= 100;
+        }
+        if dial == 0 {
+            count += 1;
+        }
+    }
+    println!("{}", count);
 }
 
 pub fn part2(input: String) {
-    let (left, right) = input
-        .lines()
-        .fold((vec![], vec![]), |(mut left, mut right), line| {
-            let mut nums = parse_nums::<u64>(line);
-            left.push(nums.next().expect("Left number not found"));
-            right.push(nums.next().expect("Right number not found"));
-            (left, right)
-        });
-    let counts = right.iter().counts();
-    left.iter()
-        .map(|l| {
-            *l * counts
-                .get(l)
-                .unwrap_or(&0)
-                .to_u64()
-                .expect("Could not convert to u64")
-        })
-        .sum::<u64>()
-        .print();
+    let mut count = 0;
+    let mut dial = 50;
+    for line in input.lines() {
+        let distance = parse_nums::<i64>(line).next().expect("Distance not found");
+
+        if line.starts_with('L') {
+            let orbits = (distance - dial) / 100;
+            count += orbits;
+            if distance - 100 * orbits >= dial && dial > 0 {
+                count += 1;
+            }
+            dial -= distance;
+        } else {
+            let orbits = (distance - (100 - dial)) / 100;
+            count += orbits;
+            if distance - 100 * orbits >= 100 - dial {
+                count += 1;
+            }
+            dial += distance;
+        }
+
+        while dial < 0 {
+            dial += 100;
+        }
+        while dial > 99 {
+            dial -= 100;
+        }
+    }
+    println!("{}", count);
 }
